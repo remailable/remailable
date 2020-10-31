@@ -34,6 +34,10 @@ class UserLookerUpper:
         return {"devicetoken": cfg.device, "usertoken": cfg.user}
 
     def add_user_config(self, user_email: str, config: dict) -> bool:
+        # TODO: Should do an upsert here.
+        # When inevitably someone double-registers, this will bork.
+        # Probably it'll be me, and I'll be so upset at first, and then I'll be
+        # so glad I wrote this comment.
         UserModel(
             email=user_email, device=config["devicetoken"], user=config["usertoken"]
         ).save()
@@ -62,3 +66,11 @@ def get_config_for_user(user_email: str) -> dict:
     """
     user_email = sanitize_email(user_email)
     return UserLookerUpper().get_config_for_user(user_email)
+
+
+def set_config_for_user(user_email: str, new_cfg: dict) -> bool:
+    """
+    Sets a config dict for the given user, based upon email.
+    """
+    user_email = sanitize_email(user_email)
+    return UserLookerUpper().add_user_config(user_email, new_cfg)

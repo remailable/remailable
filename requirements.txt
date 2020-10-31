@@ -1,3 +1,5 @@
 boto3
+flask
 pynamodb
 git+https://github.com/j6k4m8/rmapy
+zappa
