@@ -13,7 +13,7 @@ from flask import Flask, jsonify, render_template
 
 from config import Config
 
-from users import get_config_for_user, set_config_for_user
+from users import get_config_for_user, set_config_for_user, renew_user_token
 
 # remarkable imports:
 from rmapy.document import ZipDocument
@@ -76,6 +76,7 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
 
 def transfer_file_to_remarkable(user_email: str, fname, fbytes):
     # logging.info(f"Asking for {user_email} credentials...")
+    renew_user_token(user_email)
     cfg = get_config_for_user(user_email)
     rm = Client(config_dict=cfg)
     # Annoychops; gotta save to disk. Bummski!

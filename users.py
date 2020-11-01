@@ -2,6 +2,10 @@ from pynamodb.models import Model
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.constants import PAY_PER_REQUEST_BILLING_MODE
 
+# remarkable imports:
+from rmapy.document import ZipDocument
+from rmapy.api import Client
+
 
 class UserModel(Model):
     """
@@ -27,6 +31,7 @@ class UserLookerUpper:
         pass
 
     def get_config_for_user(self, user_email: str) -> dict:
+        user_email = sanitize_email(user_email)
         try:
             cfg = UserModel.get(user_email)
         except:
@@ -34,6 +39,7 @@ class UserLookerUpper:
         return {"devicetoken": cfg.device, "usertoken": cfg.user}
 
     def add_user_config(self, user_email: str, config: dict) -> bool:
+        user_email = sanitize_email(user_email)
         # TODO: Should do an upsert here.
         # When inevitably someone double-registers, this will bork.
         # Probably it'll be me, and I'll be so upset at first, and then I'll be
@@ -44,7 +50,17 @@ class UserLookerUpper:
         return True
 
     def renew_user_token(self, user_email: str) -> bool:
-        raise NotImplementedError()
+        cfg = self.get_config_for_user(user_email)
+        rm = Client(config_dict=cfg)
+        new_cfg = rm.renew_token(save_to_file=False)
+
+        UserModel.get(user_email).update(
+            actions=[
+                UserModel.device.set(new_cfg["devicetoken"]),
+                UserModel.user.set(new_cfg["usertoken"]),
+            ]
+        )
+        return new_cfg
 
 
 def sanitize_email(user_email: str) -> str:
@@ -74,3 +90,11 @@ def set_config_for_user(user_email: str, new_cfg: dict) -> bool:
     """
     user_email = sanitize_email(user_email)
     return UserLookerUpper().add_user_config(user_email, new_cfg)
+
+
+def renew_user_token(user_email: str) -> dict:
+    """
+    Renews the config dict for the given user, based upon email.
+    """
+    user_email = sanitize_email(user_email)
+    return UserLookerUpper().renew_user_token(user_email)
