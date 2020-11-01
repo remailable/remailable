@@ -1,6 +1,5 @@
-# remailable
-
-Email documents to your ReMarkable tablet.
+<h1 align="center">ReMailable</h1>
+<p align="center">email documents to your ReMarkable tablet</p>
 
 You can use this by emailing a PDF to remailable@[your-custom-domain].
 
@@ -10,7 +9,7 @@ I host a version of this that you can use for free. Emails are not kept and do n
 
 ### Setup
 
-Write a new email to [remailable@getneutrality.org](mailto:remailable@getneutrality.org) with nothing in the body and your new-device ReMarkable code in the subject line.
+Write a new email to [remailable@getneutrality.org](mailto:remailable@getneutrality.org) with nothing in the body and your [new-device ReMarkable code](https://my.remarkable.com/connect/mobile) in the subject line.
 
 ### Usage
 
