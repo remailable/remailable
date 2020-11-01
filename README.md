@@ -1,5 +1,5 @@
 <h1 align="center">ReMailable</h1>
-<p align="center">email documents to your ReMarkable tablet</p>
+<p align="center">email documents to your [ReMarkable](https://remarkable.com) tablet</p>
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/j6k4m8/remailable?style=for-the-badge) ![GitHub last commit](https://img.shields.io/github/last-commit/j6k4m8/remailable?style=for-the-badge)
 ![This repo is pretty dope.](https://img.shields.io/badge/pretty%20dope-%F0%9F%91%8C-blue?style=for-the-badge) ![This repo is licensed under Apache 2.0](https://img.shields.io/github/license/j6k4m8/remailable?style=for-the-badge)
