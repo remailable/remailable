@@ -1,7 +1,10 @@
 <h1 align="center">ReMailable</h1>
 <p align="center">email documents to your ReMarkable tablet</p>
 
-You can use this by emailing a PDF to remailable@[your-custom-domain].
+![GitHub repo size](https://img.shields.io/github/repo-size/j6k4m8/remailable?style=for-the-badge) ![GitHub last commit](https://img.shields.io/github/last-commit/j6k4m8/remailable?style=for-the-badge)
+![This repo is pretty dope.](https://img.shields.io/badge/pretty%20dope-%F0%9F%91%8C-blue?style=for-the-badge) ![This repo is licensed under Apache 2.0](https://img.shields.io/github/license/j6k4m8/remailable?style=for-the-badge)
+
+You can use this by emailing a PDF to `remailable@[your-custom-domain]`. Read on for instructions.
 
 ## Using the public instance of _remailable_ for free
 
@@ -63,3 +66,11 @@ You'll need to configure your Zappa file to look like the following:
     }
 }
 ```
+
+## Why?
+
+I love emailing documents to my Kindle. It's a very natural way of sharing a PDF for many people, and in my opinion it's a huge shortcoming of the ReMarkable ecosystem. So now it's fixed :)
+
+## You May Also Like...
+
+-   [Goosepaper](https://github.com/j6k4m8/goosepaper): A daily, customizable, morning news brief delivered to your ReMarkable
