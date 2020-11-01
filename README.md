@@ -1,4 +1,4 @@
-<h1 align="center">ReMailable</h1>
+<h1 align="center"><a href="https://remailable.getneutrality.org/">ReMailable</a></h1>
 <p align="center">email documents to your <a href="https://remarkable.com">ReMarkable</a> tablet</p>
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/j6k4m8/remailable?style=for-the-badge) ![GitHub last commit](https://img.shields.io/github/last-commit/j6k4m8/remailable?style=for-the-badge)
@@ -6,7 +6,7 @@
 
 You can use this by emailing a PDF to `remailable@[your-custom-domain]`. Read on for instructions.
 
-## Using the public instance of _remailable_ for free
+## Using <a href="https://remailable.getneutrality.org/">the public instance of _remailable_</a> for free
 
 I host a version of this that you can use for free. Emails are not kept and do not go to a real mailbox. (Email binaries are deleted after 24 hours automatically.)
 
