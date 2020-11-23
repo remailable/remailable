@@ -23,6 +23,10 @@ Email [remailable@getneutrality.org](mailto:remailable@getneutrality.org) with a
 -   Under 30MB please!
 -   That's it :)
 
+### Issues?
+
+If you encounter issues, please feel free to reach out. @j6m8 on reddit, submit an issue here, or shoot me an email.
+
 ## Making Your Own
 
 ## To Set Up Before You Start
