@@ -13,7 +13,12 @@ from flask import Flask, jsonify, render_template
 
 from config import Config
 
-from users import get_config_for_user, set_config_for_user, renew_user_token
+from users import (
+    get_config_for_user,
+    set_config_for_user,
+    renew_user_token,
+    delete_user,
+)
 
 # remarkable imports:
 from rmapy.document import ZipDocument
@@ -44,6 +49,11 @@ def send_email_if_enabled(to: str, subject: str, message: str):
         return
 
     ses = boto3.client("ses", region_name=Config.AWS_REGION)
+
+    _suffix = """
+\n
+To delete your account and unsubscribe from all future emails, reply to this message with the subject line "UNSUBSCRIBE" (case-insensitive).
+    """
     try:
         response = ses.send_email(
             Destination={
@@ -51,13 +61,9 @@ def send_email_if_enabled(to: str, subject: str, message: str):
             },
             Message={
                 "Body": {
-                    "Html": {
-                        "Charset": "UTF-8",
-                        "Data": message,
-                    },
                     "Text": {
                         "Charset": "UTF-8",
-                        "Data": message,
+                        "Data": message + _suffix,
                     },
                 },
                 "Subject": {
@@ -107,6 +113,12 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
 
     TODO: This is the thing to change to accommodate more than one PDF per msg.
     """
+
+    # Handle unsubscribes:
+    subject = message.get("Subject")
+    if "unsubscribe" in subject.lower():
+        delete_user(message.get("From"))
+
     filename = None
     filebytes = None
     for part in message.walk():

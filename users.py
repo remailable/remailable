@@ -30,6 +30,10 @@ class UserLookerUpper:
     def __init__(self):
         pass
 
+    def delete_user(self, user_email: str) -> bool:
+        UserModel.get(user_email).delete()
+        return True
+
     def get_config_for_user(self, user_email: str) -> dict:
         user_email = sanitize_email(user_email)
         try:
@@ -98,3 +102,10 @@ def renew_user_token(user_email: str) -> dict:
     """
     user_email = sanitize_email(user_email)
     return UserLookerUpper().renew_user_token(user_email)
+
+
+def delete_user(user_email: str) -> bool:
+    """
+    Remove the user from the database.
+    """
+    return UserLookerUpper().delete_user(user_email)
