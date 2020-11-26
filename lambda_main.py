@@ -5,10 +5,10 @@ import io
 import email
 import json
 
-# import logging
 import tempfile
 
 import boto3
+from botocore.exceptions import ClientError
 from flask import Flask, jsonify, render_template
 
 from config import Config
@@ -20,12 +20,65 @@ from rmapy.document import ZipDocument
 from rmapy.api import Client
 
 
+def plog(*args):
+    """
+    This is a helper function to log to CloudWatch.
+
+    Unfortunately, there's something broken in the stdlib logging calls
+    somewhere deep inside our dependencies, and it breaks Lambda when
+    we try to run logging.info() et al. So we're stuck with stdout
+    for now.
+    """
+    print(*args)
+
+
+def send_email_if_enabled(to: str, subject: str, message: str):
+    """
+    Send an email from `Config.EMAIL_SENDER` to the recipient.
+
+    This is predominantly used to log successful/errorful outputs
+    back to the user.
+    """
+    if not Config.SEND_EMAILS:
+        plog("Config.SEND_EMAILS is False; skipping receipt message.")
+        return
+
+    ses = boto3.client("ses", region_name=Config.AWS_REGION)
+    try:
+        response = ses.send_email(
+            Destination={
+                "ToAddresses": [to],
+            },
+            Message={
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": message,
+                    },
+                    "Text": {
+                        "Charset": "UTF-8",
+                        "Data": message,
+                    },
+                },
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": subject,
+                },
+            },
+            Source=Config.EMAIL_SENDER,
+        )
+    except ClientError as e:
+        plog("Encountered error:", e)
+    else:
+        plog(f"Sent email to {to}.")
+
+
 def load_email_from_s3(path: str):
     """
     Load an email object from an s3 path like `s3://foo/bar`.
 
     """
-    # logging.info(f"Loading {path} from s3...")
+    plog(f"Loading {path} from s3...")
     s3 = boto3.resource("s3")
     virtual_file = io.BytesIO()
     s3.Object(
@@ -37,6 +90,7 @@ def load_email_from_s3(path: str):
     try:
         return email.message_from_bytes(virtual_file.read())
     except:
+        plog(f"Path {path} was not a valid email .eml binary.")
         raise TypeError(f"Path {path} was not a valid email .eml binary.")
 
 
@@ -67,15 +121,27 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
         code = message.get("Subject")
         if code and len(code) == 8:
             register_user(message.get("From"), code)
+            plog(f"Registered a new user {message.get('From')}.")
+            send_email_if_enabled(
+                message.get("From"),
+                subject="Your email address is now verified!",
+                message="Your verification succeeded, and you can now email documents to your reMarkable tablet. Try responding to this email with a PDF attachment!",
+            )
             return True
         else:
+            send_email_if_enabled(
+                message.get("From"),
+                subject="A problem with your document :(",
+                message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
+            )
+            plog(f"ERROR: Encountered no PDF in message from {message.get('From')}")
             raise ValueError("No PDF in this message.")
 
     return (filename, filebytes)
 
 
 def transfer_file_to_remarkable(user_email: str, fname, fbytes):
-    # logging.info(f"Asking for {user_email} credentials...")
+    plog(f"* Asking for {user_email} credentials...")
     cfg = renew_user_token(user_email)
     rm = Client(config_dict=cfg)
     # Annoychops; gotta save to disk. Bummski!
@@ -83,20 +149,30 @@ def transfer_file_to_remarkable(user_email: str, fname, fbytes):
     tfile.write(fbytes)
     tfile.seek(0)
 
+    plog(f"* Generating zip...")
     doc = ZipDocument(doc=tfile.name)
+    plog(f"* Uploading to device.")
     rm.upload(doc)
+    plog("Success.")
+    send_email_if_enabled(
+        user_email,
+        subject="Your document is on the way!",
+        message=f"Your document, '{fname}', has been successfully sent to your reMarkable.",
+    )
 
 
 def transfer_s3_path_to_remarkable(path: str):
     message = load_email_from_s3(path)
     user_email = str(message["From"])
-    # logging.info(user_email)
     fname, fbytes = extract_pdf(message)
-    # logging.info(str(fname))
     transfer_file_to_remarkable(user_email, str(fname), fbytes)
 
 
 def upload_handler(event, context):
+    """
+    This is the function that is called when an event takes place in s3.
+
+    """
     # bucket = event['Records'][0]['s3']['bucket']['name']
     key = event["Records"][0]["s3"]["object"]["key"]
     path = key.split("/")[-1]
