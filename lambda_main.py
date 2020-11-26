@@ -13,7 +13,12 @@ from flask import Flask, jsonify, render_template
 
 from config import Config
 
-from users import get_config_for_user, set_config_for_user, renew_user_token
+from users import (
+    get_config_for_user,
+    set_config_for_user,
+    renew_user_token,
+    delete_user,
+)
 
 # remarkable imports:
 from rmapy.document import ZipDocument
@@ -44,6 +49,11 @@ def send_email_if_enabled(to: str, subject: str, message: str):
         return
 
     ses = boto3.client("ses", region_name=Config.AWS_REGION)
+
+    _suffix = """
+\n
+To delete your account and unsubscribe from all future emails, reply to this message with the subject line "UNSUBSCRIBE" (case-insensitive).
+    """
     try:
         response = ses.send_email(
             Destination={
@@ -51,13 +61,9 @@ def send_email_if_enabled(to: str, subject: str, message: str):
             },
             Message={
                 "Body": {
-                    "Html": {
-                        "Charset": "UTF-8",
-                        "Data": message,
-                    },
                     "Text": {
                         "Charset": "UTF-8",
-                        "Data": message,
+                        "Data": message + _suffix,
                     },
                 },
                 "Subject": {
@@ -91,7 +97,6 @@ def load_email_from_s3(path: str):
         return email.message_from_bytes(virtual_file.read())
     except:
         plog(f"Path {path} was not a valid email .eml binary.")
-        raise TypeError(f"Path {path} was not a valid email .eml binary.")
 
 
 def register_user(user_email: str, code: str):
@@ -108,6 +113,14 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
 
     TODO: This is the thing to change to accommodate more than one PDF per msg.
     """
+
+    # Handle unsubscribes:
+    subject = message.get("Subject")
+    if "unsubscribe" in subject.lower():
+        plog(f"Permanently removing user {message.get('From')}.")
+        delete_user(message.get("From"))
+        return (False, False)
+
     filename = None
     filebytes = None
     for part in message.walk():
@@ -127,7 +140,7 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
                 subject="Your email address is now verified!",
                 message="Your verification succeeded, and you can now email documents to your reMarkable tablet. Try responding to this email with a PDF attachment!",
             )
-            return True
+            return (False, False)
         else:
             send_email_if_enabled(
                 message.get("From"),
@@ -135,7 +148,7 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
                 message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
             )
             plog(f"ERROR: Encountered no PDF in message from {message.get('From')}")
-            raise ValueError("No PDF in this message.")
+            return (False, False)
 
     return (filename, filebytes)
 
@@ -165,7 +178,8 @@ def transfer_s3_path_to_remarkable(path: str):
     message = load_email_from_s3(path)
     user_email = str(message["From"])
     fname, fbytes = extract_pdf(message)
-    transfer_file_to_remarkable(user_email, str(fname), fbytes)
+    if fbytes:
+        transfer_file_to_remarkable(user_email, str(fname), fbytes)
 
 
 def upload_handler(event, context):

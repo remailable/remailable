@@ -36,6 +36,7 @@ If you encounter issues, please feel free to reach out. @j6m8 on reddit, submit 
 -   [ ] If you're planning on distributing to public users (i.e. don't know your recipients' emails a priori), you must also [move your SES account into production mode](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html). Note that this is not necessary if you are just setting up a personal deploy: In that case, you can just add your personal email address to the list of approved sandbox recipients. Note that this process has an AWS human in the loop, and will take a while.
 -   [ ] Verify your sender email address (same as you use for `Config.EMAIL_SENDER` in config.py). You can do this automatically with `python3 provision.py verify-sender`.
 -   [ ] Set up a S3 hook upon email receipt so that emails are routed to an S3 bucket. (See docs above)
+-   [ ] Add the `SESSendEmail` (or just `AmazonSESFullAccess`) policies to your Zappa-created role. (This role will be called something like `remailable-blah-ZappaLambdaExecutionRole`)
 -   [ ] Create a `config.py` file in this directory with the following contents:
 
 ```python
