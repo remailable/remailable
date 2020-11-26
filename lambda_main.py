@@ -91,7 +91,6 @@ def load_email_from_s3(path: str):
         return email.message_from_bytes(virtual_file.read())
     except:
         plog(f"Path {path} was not a valid email .eml binary.")
-        raise TypeError(f"Path {path} was not a valid email .eml binary.")
 
 
 def register_user(user_email: str, code: str):
@@ -135,7 +134,6 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
                 message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
             )
             plog(f"ERROR: Encountered no PDF in message from {message.get('From')}")
-            raise ValueError("No PDF in this message.")
 
     return (filename, filebytes)
 
