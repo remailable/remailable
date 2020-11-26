@@ -31,6 +31,7 @@ class UserLookerUpper:
         pass
 
     def delete_user(self, user_email: str) -> bool:
+        user_email = sanitize_email(user_email)
         UserModel.get(user_email).delete()
         return True
 

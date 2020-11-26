@@ -117,7 +117,9 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
     # Handle unsubscribes:
     subject = message.get("Subject")
     if "unsubscribe" in subject.lower():
+        plog(f"Permanently removing user {message.get('From')}.")
         delete_user(message.get("From"))
+        return (False, False)
 
     filename = None
     filebytes = None
@@ -138,7 +140,7 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
                 subject="Your email address is now verified!",
                 message="Your verification succeeded, and you can now email documents to your reMarkable tablet. Try responding to this email with a PDF attachment!",
             )
-            return True
+            return (False, False)
         else:
             send_email_if_enabled(
                 message.get("From"),
@@ -146,6 +148,7 @@ def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
                 message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
             )
             plog(f"ERROR: Encountered no PDF in message from {message.get('From')}")
+            return (False, False)
 
     return (filename, filebytes)
 
@@ -175,7 +178,8 @@ def transfer_s3_path_to_remarkable(path: str):
     message = load_email_from_s3(path)
     user_email = str(message["From"])
     fname, fbytes = extract_pdf(message)
-    transfer_file_to_remarkable(user_email, str(fname), fbytes)
+    if fbytes:
+        transfer_file_to_remarkable(user_email, str(fname), fbytes)
 
 
 def upload_handler(event, context):
