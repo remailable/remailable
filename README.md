@@ -33,13 +33,24 @@ If you encounter issues, please feel free to reach out. @j6m8 on reddit, submit 
 
 -   [ ] You'll need to set up an SES domain ([AWS Docs](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-getting-started-before.html)).
 -   [ ] Verify the domain ([AWS Docs](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-getting-started-verify.html)).
+-   [ ] If you're planning on distributing to public users (i.e. don't know your recipients' emails a priori), you must also [move your SES account into production mode](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html). Note that this is not necessary if you are just setting up a personal deploy: In that case, you can just add your personal email address to the list of approved sandbox recipients. Note that this process has an AWS human in the loop, and will take a while.
+-   [ ] Verify your sender email address (same as you use for `Config.EMAIL_SENDER` in config.py). You can do this automatically with `python3 provision.py verify-sender`.
 -   [ ] Set up a S3 hook upon email receipt so that emails are routed to an S3 bucket. (See docs above)
 -   [ ] Create a `config.py` file in this directory with the following contents:
 
 ```python
 class Config:
+    AWS_REGION = "us-east-1"
+
     BUCKET_NAME = "[YOUR BUCKET NAME]"
     BUCKET_PREFIX = "attachments" # optional; based upon your S3 rule above
+
+    # The email-sender that you verified above. Leave as empty string
+    # if Config.SEND_EMAILS is False.
+    EMAIL_SENDER = "Remailable <YOUR_USER@DOMAIN.com>"
+
+    # Set to False if you won't be sending receipt emails:
+    SEND_EMAILS = True
 ```
 
 ## To Set Up While You Start
