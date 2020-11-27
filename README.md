@@ -1,8 +1,12 @@
 <h1 align="center"><a href="https://remailable.getneutrality.org/">ReMailable</a></h1>
 <p align="center">email documents to your <a href="https://remarkable.com">ReMarkable</a> tablet</p>
 
-![GitHub repo size](https://img.shields.io/github/repo-size/j6k4m8/remailable?style=for-the-badge) ![GitHub last commit](https://img.shields.io/github/last-commit/j6k4m8/remailable?style=for-the-badge)
-![This repo is pretty dope.](https://img.shields.io/badge/pretty%20dope-%F0%9F%91%8C-blue?style=for-the-badge) ![This repo is licensed under Apache 2.0](https://img.shields.io/github/license/j6k4m8/remailable?style=for-the-badge)
+<p align="center">
+<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/j6k4m8/remailable?style=for-the-badge" />
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/j6k4m8/remailable?style=for-the-badge" />
+<img alt="This repo is pretty dope" src="https://img.shields.io/badge/pretty%20dope-%F0%9F%91%8C-blue?style=for-the-badge" />
+<img alt="This repo is licensed under Apache 2.0" src="https://img.shields.io/github/license/j6k4m8/remailable?style=for-the-badge" />
+</p>
 
 You can use this by emailing a PDF to `remailable@[your-custom-domain]`. Read on for instructions.
 
