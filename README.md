@@ -27,7 +27,11 @@ Email [remailable@getneutrality.org](mailto:remailable@getneutrality.org) with a
 
 If you encounter issues, please feel free to reach out. @j6m8 on reddit, submit an issue here, or shoot me an email.
 
+To delete your account, send a message with the subject line "Unsubscribe". Your account will be deleted and you will not receive any more emails from Remailable.
+
 ## Making Your Own
+
+I'm trying to migrate as much of this as possible to automation/scripts. Unfortunately, much of this must be done through the AWS UI console, and because there's a human in the loop, it can take a few days!
 
 ## To Set Up Before You Start
 
