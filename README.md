@@ -14,6 +14,8 @@ You can use this by emailing a PDF to `remailable@[your-custom-domain]`. Read on
 
 I host a version of this that you can use for free. Emails are not kept and do not go to a real mailbox. (Email binaries are deleted after 24 hours automatically.)
 
+If you would like to make a donation to keep this service alive, please feel free to donate [via paypal](https://paypal.me/j6m8).
+
 ### Setup
 
 Write a new email to [remailable@getneutrality.org](mailto:remailable@getneutrality.org) with nothing in the body and your [new-device ReMarkable code](https://my.remarkable.com/connect/mobile) in the subject line.
