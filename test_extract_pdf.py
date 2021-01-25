@@ -14,12 +14,14 @@ class MockUserModel(UserModel):
 
 mock_register_user = MagicMock(return_value=True)
 mock_send_email = MagicMock()
+mock_delete_user = MagicMock(return_value=True)
+
 
 @pytest.fixture(autouse=True)
 def mock_lambdamain(monkeypatch):
     monkeypatch.setattr(lambda_main, "register_user", mock_register_user)
     monkeypatch.setattr(lambda_main, "send_email_if_enabled", mock_send_email)
-
+    monkeypatch.setattr(lambda_main, "delete_user", mock_delete_user)
 
 @pytest.fixture
 def message_with_one_attachment():
@@ -40,6 +42,25 @@ def message_with_code():
         return message
 
 @pytest.fixture
+def regular_message():
+    """
+    Pytest fixture for regular email
+    (not a code, not an unsubscribe, no attachment)
+    """
+    with open("./test_data/regular_email.eml", "rb") as f:
+        message = email.message_from_binary_file(f)
+        return message
+
+@pytest.fixture
+def unsubscribe_message():
+    """
+    Pytest fixture for unsubscribe email
+    """
+    with open("./test_data/unsubscribe_email.eml", "rb") as f:
+        message = email.message_from_binary_file(f)
+        return message
+
+@pytest.fixture
 def test_pdf():
     """
     Returns the binary data of test_pdf.pdf
@@ -47,6 +68,7 @@ def test_pdf():
     """
     with open("./test_data/test_pdf.pdf", "rb") as pdff:
         return pdff.read()
+
 
 def test_extract_pdf_code(message_with_code):
     """
@@ -58,8 +80,8 @@ def test_extract_pdf_code(message_with_code):
     """
     filename, filebytes = lambda_main.extract_pdf(message_with_code)
     assert (filename, filebytes) == (False, False)
-    mock_register_user.assert_called_once_with("Lieu Zheng Hong <lieu@lieuzhenghong.com>", "ABCD1234")
-    mock_send_email.assert_called_once_with(
+    mock_register_user.assert_called_with("Lieu Zheng Hong <lieu@lieuzhenghong.com>", "ABCD1234")
+    mock_send_email.assert_called_with(
         "Lieu Zheng Hong <lieu@lieuzhenghong.com>",
         subject="Your email address is now verified!",
         message="Your verification succeeded, and you can now email documents to your reMarkable tablet. Try responding to this email with a PDF attachment!",
@@ -74,5 +96,18 @@ def test_extract_pdf_single_pdf(message_with_one_attachment, test_pdf):
     filename, filebytes = lambda_main.extract_pdf(message_with_one_attachment)
     assert (filename, filebytes) == ("test_pdf.pdf", test_pdf)
 
-def test_extract_pdf_no_pdf():
-    assert False
+def test_extract_pdf_no_pdf(regular_message):
+    filename, filebytes = lambda_main.extract_pdf(regular_message)
+    assert (filename, filebytes) == (False, False)
+    mock_send_email.assert_called_with(
+        "Lieu Zheng Hong <lieu@lieuzhenghong.com>",
+        subject="A problem with your document :(",
+        message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
+    )
+
+def test_extract_pdf_unsubscribe(unsubscribe_message):
+    filename, filebytes = lambda_main.extract_pdf(unsubscribe_message)
+    assert (filename, filebytes) == (False, False)
+    mock_delete_user.assert_called_once_with(
+        "Lieu Zheng Hong <lieu@lieuzhenghong.com>",
+    )

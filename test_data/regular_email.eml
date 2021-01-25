@@ -1,0 +1,40 @@
+Return-Path: <lieu@lieuzhenghong.com>
+Delivered-To: lieu@lieuzhenghong.com
+Received: from mp2 ([2001:41d0:2:863f::])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ms12 with LMTPS
+	id YMviMtvhD2CWAgAAsNZ9tg
+	(envelope-from <lieu@lieuzhenghong.com>)
+	for <lieu@lieuzhenghong.com>; Tue, 26 Jan 2021 09:33:15 +0000
+Received: from out1.migadu.com ([2001:41d0:2:863f::])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by mp2 with LMTPS
+	id uHrKOdnhD2BuHwAAB5/wlQ
+	(envelope-from <lieu@lieuzhenghong.com>)
+	for <lieu@lieuzhenghong.com>; Tue, 26 Jan 2021 09:33:13 +0000
+To: Lieu Zheng Hong <lieu@lieuzhenghong.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lieuzhenghong.com;
+	s=key1; t=1611653593;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=d9vNQCQ52bUFjiMN/FrqkUkL4rXkhPou9NkLkIyp7rI=;
+	b=Il7FwN5Z7s64h/txlzwCQZq8PybbiVEHN4UjJ0LkUY81wmK2cOWJhu4S5UPV3Q34gQI25k
+	Wfq5xCzVe5fRBBv+wexugcK10JP3hPU0wlSRqDO639VB6dUIBGoztqnCdnO5F5MEY7TwAw
+	DKQC4EHooPUollUzoAdeQajZqnw8GNG6lVBxymV2fgcTZDf8eSfzhyaUEb2Yi41RJrnWAK
+	m2rxlcjZiUFwdUB2yuQ0rHSp2gKvNIHI7HNHuw2QMGJ1i5b2bhnNb/2lycMlkc5fY7zTPM
+	9kUuDx4D7cz7LhD3MPZ1YQ6yu6d1AHWuy59kO+u4EAeFzyJH0wG2c2+btHCjKA==
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Lieu Zheng Hong <lieu@lieuzhenghong.com>
+Subject: This is a regular subject
+Message-ID: <3d20680e-ff82-e056-f80c-81e4b4b2747e@lieuzhenghong.com>
+Date: Tue, 26 Jan 2021 17:33:11 +0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: lieu@lieuzhenghong.com
+X-Migadu-Reason: intradomain
+
+This is a regular email with a regular subject
