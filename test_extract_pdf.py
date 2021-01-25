@@ -26,7 +26,7 @@ def message_with_one_attachment():
     """
     Pytest fixture 
     """
-    with open("pdf_one_email.eml", "rb") as f:
+    with open("./test_data/pdf_one_email.eml", "rb") as f:
         message = email.message_from_binary_file(f)
         return message
 
@@ -35,7 +35,7 @@ def message_with_code():
     """
     Pytest fixture
     """
-    with open("code_email.eml", "rb") as f:
+    with open("./test_data/code_email.eml", "rb") as f:
         message = email.message_from_binary_file(f)
         return message
 
@@ -45,7 +45,7 @@ def test_pdf():
     Returns the binary data of test_pdf.pdf
     for testing purposes
     """
-    with open("test_pdf.pdf", "rb") as pdff:
+    with open("./test_data/test_pdf.pdf", "rb") as pdff:
         return pdff.read()
 
 def test_extract_pdf_code(message_with_code):
