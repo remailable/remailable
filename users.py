@@ -22,8 +22,8 @@ class UserModel(Model):
     user = UnicodeAttribute()
 
 
-if not UserModel.exists():
-    UserModel.create_table(wait=True)
+# if not UserModel.exists():
+#    UserModel.create_table(wait=True)
 
 
 class UserLookerUpper:
