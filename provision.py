@@ -10,6 +10,7 @@ Usage: python3 provision.py [COMMAND]
 Commands:
     - help:             Show this message
     - verify-sender:    Verify the email sender in Config.EMAIL_SENDER
+    - create-table:     Create the UserModel table for use via PynamoDB
 
 """
 
@@ -28,6 +29,13 @@ def verify_sender_and_exit():
     )
     print(response)
     exit(0)
+    
+
+def create_table_and_exit():
+    from users import UserModel
+    if not UserModel.exists():
+        UserModel.create_table(wait=True)
+    exit(0)
 
 
 if sys.argv[-1] in ["--help", "-h", "help"]:
@@ -35,3 +43,6 @@ if sys.argv[-1] in ["--help", "-h", "help"]:
 
 elif sys.argv[-1] in ["verify-sender"]:
     verify_sender_and_exit()
+    
+elif sys.argv[-1] in ["create-table"]:
+    create_table_and_exit()

@@ -44,6 +44,7 @@ I'm trying to migrate as much of this as possible to automation/scripts. Unfortu
 -   [ ] You'll need to set up an SES domain ([AWS Docs](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-getting-started-before.html)).
 -   [ ] Verify the domain ([AWS Docs](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-getting-started-verify.html)).
 -   [ ] If you're planning on distributing to public users (i.e. don't know your recipients' emails a priori), you must also [move your SES account into production mode](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html). Note that this is not necessary if you are just setting up a personal deploy: In that case, you can just add your personal email address to the list of approved sandbox recipients. Note that this process has an AWS human in the loop, and will take a while.
+-   [ ] Create the users table in DynamoDB. You can do this automatically with `python3 provision.py create-table`.
 -   [ ] Verify your sender email address (same as you use for `Config.EMAIL_SENDER` in config.py). You can do this automatically with `python3 provision.py verify-sender`.
 -   [ ] Set up a S3 hook upon email receipt so that emails are routed to an S3 bucket. (See docs above)
 -   [ ] Add the `SESSendEmail` (or just `AmazonSESFullAccess`) policies to your Zappa-created role. (This role will be called something like `remailable-blah-ZappaLambdaExecutionRole`)
