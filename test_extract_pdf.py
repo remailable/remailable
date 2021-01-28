@@ -38,6 +38,11 @@ def message_with_epub_attachment():
         message = email.message_from_binary_file(f)
         return message
 
+@pytest.fixture
+def message_with_multiple_attachments():
+    with open("./test_data/multiple_emails.eml", "rb") as f:
+        message = email.message_from_binary_file(f)
+        return message
 
 @pytest.fixture
 def message_with_code():
@@ -156,19 +161,23 @@ def test_extract_files_from_email_pdf(message_with_one_attachment, test_pdf):
         extracted_files=[("test_pdf.pdf", test_pdf)]
     )
 
-def test_extract_files_from_email_epub(message_with_one_attachment, test_epub):
-    result = lambda_main.extract_files_from_email(message_with_one_attachment)
-    assert result == lambda_main.ParseMessageResult(
-        sent_from="Lieu Zheng Hong <lieu@lieuzhenghong.com>",
-        status=lambda_main.MessageStatus.SUCCESS,
-        subject="Email with an EPUB attachment",
-        extracted_files=[("test_pdf.epub", test_epub)]
+def test_extract_files_from_email_epub(message_with_epub_attachment, test_epub):
+    result = lambda_main.extract_files_from_email(message_with_epub_attachment)
+    assert result["sent_from"] == "Lieu Zheng Hong <lieu@lieuzhenghong.com>"
+    assert result["status"] == lambda_main.MessageStatus.SUCCESS
+    assert result["subject"] == "Email with an EPUB attachment"
+    assert result["extracted_files"] == [("test_pdf.epub", test_epub)]
+
+def test_extract_files_from_email_multiple(message_with_multiple_attachments, test_epub, test_pdf):
+    result = lambda_main.extract_files_from_email(message_with_multiple_attachments)
+    assert result["sent_from"] == "Lieu Zheng Hong <lieu@lieuzhenghong.com>"
+    assert result["status"] == lambda_main.MessageStatus.SUCCESS
+    assert result["subject"] == "An email with multiple files"
+    assert sorted(result["extracted_files"]) == sorted([("test_pdf.epub", test_epub), ("test_pdf.pdf", test_pdf)]
     )
 
 def test_extract_files_from_email_error(message_with_one_attachment, test_pdf):
     # TODO
     assert True
 
-def test_extract_files_from_email_several_files(message_with_one_attachment, test_pdf):
-    # TODO
-    assert True
+# TODO write tests for handle_message_result and ensure it makes the same calls as extract_files
