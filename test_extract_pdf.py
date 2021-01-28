@@ -91,7 +91,6 @@ def test_epub():
     with open("./test_data/test_pdf.epub", "rb") as epub:
         return epub.read()
 
-
 def test_extract_pdf_code(message_with_code):
     """
     Tests that the extract_pdf function in lambda_main
@@ -179,5 +178,3 @@ def test_extract_files_from_email_multiple(message_with_multiple_attachments, te
 def test_extract_files_from_email_error(message_with_one_attachment, test_pdf):
     # TODO
     assert True
-
-# TODO write tests for handle_message_result and ensure it makes the same calls as extract_files
