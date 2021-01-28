@@ -22,10 +22,6 @@ class UserModel(Model):
     user = UnicodeAttribute()
 
 
-if not UserModel.exists():
-    UserModel.create_table(wait=True)
-
-
 class UserLookerUpper:
     def __init__(self):
         pass
