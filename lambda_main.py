@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, TypedDict
 
 import base64
 import io
@@ -106,6 +106,76 @@ def register_user(user_email: str, code: str):
     set_config_for_user(user_email, new_cfg)
     return True
 
+from typing import List, TypedDict
+from enum import Enum
+FileTuple = Tuple[str, bytes]
+
+class MessageStatus(Enum):
+    SUCCESS = 0
+    FAILURE = 1
+    UNSUBSCRIBE = 2
+    REGISTER = 3
+    FILE_TOO_BIG = 4 # unused
+
+class ParseMessageResult(TypedDict):
+    sent_from: str
+    subject: str
+    status: MessageStatus
+    extracted_files: List[FileTuple]
+
+def extract_files_from_email(message: email.message.Message) -> ParseMessageResult:
+    """
+    Parses an email Message and returns a ParseMessageResult:
+    1. Is there a subject and from in the email? If no, return.
+    2. Does the subject contain the word "unsubscribe"? If yes, return.
+    3. Is the subject 8 letters long? If yes, return.
+    4. Otherwise:
+        - Walk through the message and grab all parts that match
+          "application/pdf;" or "application/epub".
+        - Return a ParseMessageResult with those files.
+    """
+    subject: str = message.get("Subject")
+    sent_from: str = message.get("From")
+    assert subject and sent_from
+    if "unsubscribe" in subject.lower():
+        return ParseMessageResult(
+            sent_from=sent_from,
+            subject=subject,
+            status=MessageStatus.UNSUBSCRIBE, 
+            extracted_files=[])
+    # FIXME: need a more robust check here
+    if subject and len(subject) == 8:
+        return ParseMessageResult(
+            sent_from=sent_from,
+            subject=subject,
+            status=MessageStatus.REGISTER, 
+            extracted_files=[])
+    # Now we're done parsing the subject, we should check if there are any attachments
+    files: List[FileTuple] = []
+    for part in message.walk():
+        if "application/pdf;" in part["Content-Type"]:
+            filename = part.get_filename() or "Remailable_Attachment.pdf"
+            filebytes = base64.b64decode(part.get_payload())
+            assert type(filename) == str
+            files.append((filename, filebytes))
+        elif "application/epub" in part["Content-Type"]:
+            filename = part.get_filename() or "Remailable_Attachment.epub"
+            filebytes = base64.b64decode(part.get_payload())
+            assert type(filename) == str
+            files.append((filename, filebytes))
+    if files:
+        return ParseMessageResult(
+            sent_from=sent_from,
+            subject = subject,
+            status=MessageStatus.SUCCESS, 
+            extracted_files=files)
+    else:
+        # Couldn't parse any files, empty
+        return ParseMessageResult(
+            sent_from=sent_from,
+            subject = subject,
+            status=MessageStatus.FAILURE, 
+            extracted_files=files)
 
 def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
     """
@@ -174,12 +244,37 @@ def transfer_file_to_remarkable(user_email: str, fname, fbytes):
     )
 
 
+def handle_message_result(result: ParseMessageResult) -> None:
+    """
+    Takes in a ParseMessageResult and sends the appropriate emails/
+    transfers the approriate files depending on the message status
+    """
+    if result["status"] == MessageStatus.UNSUBSCRIBE:
+        plog(f"Permanently removing user {result['sent_from']}.")
+        delete_user(result["sent_from"])
+    elif result["status"] == MessageStatus.REGISTER:
+        register_user(result["sent_from"], result["subject"])
+        plog(f"Registered a new user {result['sent_from']}.")
+        send_email_if_enabled(
+            to=result["sent_from"],
+            subject="Your email address is now verified!",
+            message="Your verification succeeded, and you can now email documents to your reMarkable tablet. Try responding to this email with a PDF attachment!",
+        )
+    elif result["status"] == MessageStatus.FAILURE:
+        send_email_if_enabled(
+            to=result["sent_from"],
+            subject="A problem with your document :(",
+            message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
+        )
+        plog(f"ERROR: Encountered no files I could pass in message from {result['sent_from']}")
+    else:
+        for fname, fbytes in result["extracted_files"]:
+            transfer_file_to_remarkable(result["sent_from"], fname, fbytes)
+    
+
 def transfer_s3_path_to_remarkable(path: str):
     message = load_email_from_s3(path)
-    user_email = str(message["From"])
-    fname, fbytes = extract_pdf(message)
-    if fbytes:
-        transfer_file_to_remarkable(user_email, str(fname), fbytes)
+    handle_message_result(extract_files_from_email(message))
 
 
 def upload_handler(event, context):

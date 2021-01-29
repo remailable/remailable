@@ -21,7 +21,6 @@ class UserModel(Model):
     device = UnicodeAttribute()
     user = UnicodeAttribute()
 
-
 class UserLookerUpper:
     def __init__(self):
         pass

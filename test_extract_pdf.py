@@ -33,6 +33,18 @@ def message_with_one_attachment():
         return message
 
 @pytest.fixture
+def message_with_epub_attachment():
+    with open("./test_data/epub_email.eml", "rb") as f:
+        message = email.message_from_binary_file(f)
+        return message
+
+@pytest.fixture
+def message_with_multiple_attachments():
+    with open("./test_data/multiple_emails.eml", "rb") as f:
+        message = email.message_from_binary_file(f)
+        return message
+
+@pytest.fixture
 def message_with_code():
     """
     Pytest fixture
@@ -69,6 +81,15 @@ def test_pdf():
     with open("./test_data/test_pdf.pdf", "rb") as pdff:
         return pdff.read()
 
+@pytest.fixture
+def test_epub():
+    """
+    Returns the binary data of test_pdf.epub
+    for testing purposes
+    """
+    # FIXME
+    with open("./test_data/test_pdf.epub", "rb") as epub:
+        return epub.read()
 
 def test_extract_pdf_code(message_with_code):
     """
@@ -111,3 +132,49 @@ def test_extract_pdf_unsubscribe(unsubscribe_message):
     mock_delete_user.assert_called_once_with(
         "Lieu Zheng Hong <lieu@lieuzhenghong.com>",
     )
+
+def test_extract_files_from_email_unsubscribe(unsubscribe_message):
+    result = lambda_main.extract_files_from_email(unsubscribe_message)
+    assert result ==  lambda_main.ParseMessageResult(
+        sent_from="Lieu Zheng Hong <lieu@lieuzhenghong.com>",
+        status=lambda_main.MessageStatus.UNSUBSCRIBE,
+        subject="Please Unsubscribe Me",
+        extracted_files=[]
+    )
+
+def test_extract_files_from_email_register(message_with_code):
+    result = lambda_main.extract_files_from_email(message_with_code)
+    assert result ==  lambda_main.ParseMessageResult(
+        sent_from="Lieu Zheng Hong <lieu@lieuzhenghong.com>",
+        status=lambda_main.MessageStatus.REGISTER,
+        subject="ABCD1234",
+        extracted_files=[]
+    )
+
+def test_extract_files_from_email_pdf(message_with_one_attachment, test_pdf):
+    result = lambda_main.extract_files_from_email(message_with_one_attachment)
+    assert result == lambda_main.ParseMessageResult(
+        sent_from="Lieu Zheng Hong <lieu@lieuzhenghong.com>",
+        status=lambda_main.MessageStatus.SUCCESS,
+        subject="Re: Test email with test PDF",
+        extracted_files=[("test_pdf.pdf", test_pdf)]
+    )
+
+def test_extract_files_from_email_epub(message_with_epub_attachment, test_epub):
+    result = lambda_main.extract_files_from_email(message_with_epub_attachment)
+    assert result["sent_from"] == "Lieu Zheng Hong <lieu@lieuzhenghong.com>"
+    assert result["status"] == lambda_main.MessageStatus.SUCCESS
+    assert result["subject"] == "Email with an EPUB attachment"
+    assert result["extracted_files"] == [("test_pdf.epub", test_epub)]
+
+def test_extract_files_from_email_multiple(message_with_multiple_attachments, test_epub, test_pdf):
+    result = lambda_main.extract_files_from_email(message_with_multiple_attachments)
+    assert result["sent_from"] == "Lieu Zheng Hong <lieu@lieuzhenghong.com>"
+    assert result["status"] == lambda_main.MessageStatus.SUCCESS
+    assert result["subject"] == "An email with multiple files"
+    assert sorted(result["extracted_files"]) == sorted([("test_pdf.epub", test_epub), ("test_pdf.pdf", test_pdf)]
+    )
+
+def test_extract_files_from_email_error(message_with_one_attachment, test_pdf):
+    # TODO
+    assert True
