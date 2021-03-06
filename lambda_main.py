@@ -1,4 +1,4 @@
-from typing import Tuple, TypedDict
+from typing import Tuple, Dict
 
 import base64
 import io
@@ -106,7 +106,7 @@ def register_user(user_email: str, code: str):
     set_config_for_user(user_email, new_cfg)
     return True
 
-from typing import List, TypedDict
+from typing import List, Dict
 from enum import Enum
 FileTuple = Tuple[str, bytes]
 
@@ -117,7 +117,7 @@ class MessageStatus(Enum):
     REGISTER = 3
     FILE_TOO_BIG = 4 # unused
 
-class ParseMessageResult(TypedDict):
+class ParseMessageResult(Dict):
     sent_from: str
     subject: str
     status: MessageStatus
