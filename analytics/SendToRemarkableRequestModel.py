@@ -2,10 +2,6 @@ from pynamodb.models import Model
 from pynamodb.attributes import UnicodeAttribute, NumberAttribute, BooleanAttribute
 from pynamodb.constants import PAY_PER_REQUEST_BILLING_MODE
 
-# remarkable imports:
-from rmapy.document import ZipDocument
-from rmapy.api import Client
-
 
 class SendToRemarkableRequestModel(Model):
     """
