@@ -1,6 +1,7 @@
 from typing import Tuple, Dict
 
 import base64
+import datetime
 import io
 import email
 import json
@@ -19,6 +20,8 @@ from users import (
     renew_user_token,
     delete_user,
 )
+
+from analytics.SendToRemarkableRequestModel import SendToRemarkableRequestModel
 
 # remarkable imports:
 from rmapy.document import ZipDocument
@@ -106,22 +109,27 @@ def register_user(user_email: str, code: str):
     set_config_for_user(user_email, new_cfg)
     return True
 
+
 from typing import List, Dict
 from enum import Enum
+
 FileTuple = Tuple[str, bytes]
+
 
 class MessageStatus(Enum):
     SUCCESS = 0
     FAILURE = 1
     UNSUBSCRIBE = 2
     REGISTER = 3
-    FILE_TOO_BIG = 4 # unused
+    FILE_TOO_BIG = 4  # unused
+
 
 class ParseMessageResult(Dict):
     sent_from: str
     subject: str
     status: MessageStatus
     extracted_files: List[FileTuple]
+
 
 def extract_files_from_email(message: email.message.Message) -> ParseMessageResult:
     """
@@ -141,15 +149,17 @@ def extract_files_from_email(message: email.message.Message) -> ParseMessageResu
         return ParseMessageResult(
             sent_from=sent_from,
             subject=subject,
-            status=MessageStatus.UNSUBSCRIBE, 
-            extracted_files=[])
+            status=MessageStatus.UNSUBSCRIBE,
+            extracted_files=[],
+        )
     # FIXME: need a more robust check here
     if subject and len(subject) == 8:
         return ParseMessageResult(
             sent_from=sent_from,
             subject=subject,
-            status=MessageStatus.REGISTER, 
-            extracted_files=[])
+            status=MessageStatus.REGISTER,
+            extracted_files=[],
+        )
     # Now we're done parsing the subject, we should check if there are any attachments
     files: List[FileTuple] = []
     for part in message.walk():
@@ -166,16 +176,19 @@ def extract_files_from_email(message: email.message.Message) -> ParseMessageResu
     if files:
         return ParseMessageResult(
             sent_from=sent_from,
-            subject = subject,
-            status=MessageStatus.SUCCESS, 
-            extracted_files=files)
+            subject=subject,
+            status=MessageStatus.SUCCESS,
+            extracted_files=files,
+        )
     else:
         # Couldn't parse any files, empty
         return ParseMessageResult(
             sent_from=sent_from,
-            subject = subject,
-            status=MessageStatus.FAILURE, 
-            extracted_files=files)
+            subject=subject,
+            status=MessageStatus.FAILURE,
+            extracted_files=files,
+        )
+
 
 def extract_pdf(message: email.message.Message) -> Tuple[str, bytes]:
     """
@@ -266,26 +279,55 @@ def handle_message_result(result: ParseMessageResult) -> None:
             subject="A problem with your document :(",
             message="Unfortunately, a problem occurred while processing your email. Remailable only supports PDF attachments for now. If you're still encountering issues, please get in touch with Jordan at remailable@matelsky.com or on Twitter at @j6m8.",
         )
-        plog(f"ERROR: Encountered no files I could pass in message from {result['sent_from']}")
+        try:
+            SendToRemarkableRequestModel(
+                email=result["sent_from"],
+                date=datetime.datetime.now().isoformat(),
+                upload_size=-1,
+                success=False,
+                traceback="Error",
+            ).save()
+        except Exception as e:
+            plog(f"Encountered exception while logging: {e}")
+        plog(
+            f"ERROR: Encountered no files I could pass in message from {result['sent_from']}"
+        )
     else:
         for fname, fbytes in result["extracted_files"]:
             transfer_file_to_remarkable(result["sent_from"], fname, fbytes)
-    
+            try:
+                SendToRemarkableRequestModel(
+                    email=result["sent_from"],
+                    date=datetime.datetime.now().isoformat(),
+                    upload_size=len(fbytes),
+                    success=True,
+                    traceback="",
+                ).save()
+            except Exception as e:
+                plog(f"Encountered exception while logging: {e}")
+
 
 def transfer_s3_path_to_remarkable(path: str):
+    """
+    Given a path to a file in S3, download the file and transfer it.
+    """
     message = load_email_from_s3(path)
     handle_message_result(extract_files_from_email(message))
 
 
 def upload_handler(event, context):
     """
-    This is the function that is called when an event takes place in s3.
+    This is the function that is called when an event takes place in lambda.
 
     """
-    # bucket = event['Records'][0]['s3']['bucket']['name']
-    key = event["Records"][0]["s3"]["object"]["key"]
-    path = key.split("/")[-1]
-    transfer_s3_path_to_remarkable(path)
+    try:
+        # bucket = event['Records'][0]['s3']['bucket']['name']
+        key = event["Records"][0]["s3"]["object"]["key"]
+        path = key.split("/")[-1]
+        transfer_s3_path_to_remarkable(path)
+    except Exception as e:
+        return {"statusCode": 500, "body": "Failure occurred!"}
+
     return {"statusCode": 200, "body": "Success"}
 
 

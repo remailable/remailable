@@ -29,12 +29,16 @@ def verify_sender_and_exit():
     )
     print(response)
     exit(0)
-    
+
 
 def create_table_and_exit():
     from users import UserModel
+    from analytics.SendToRemarkableRequestModel import SendToRemarkableRequestModel
+
     if not UserModel.exists():
         UserModel.create_table(wait=True)
+    if not SendToRemarkableRequestModel.exists():
+        SendToRemarkableRequestModel.create_table(wait=True)
     exit(0)
 
 
@@ -43,6 +47,6 @@ if sys.argv[-1] in ["--help", "-h", "help"]:
 
 elif sys.argv[-1] in ["verify-sender"]:
     verify_sender_and_exit()
-    
+
 elif sys.argv[-1] in ["create-table"]:
     create_table_and_exit()
