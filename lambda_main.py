@@ -90,9 +90,14 @@ def load_email_from_s3(path: str):
     plog(f"Loading {path} from s3...")
     s3 = boto3.resource("s3")
     virtual_file = io.BytesIO()
-    s3.Object(
-        bucket_name=Config.BUCKET_NAME, key=f"{Config.BUCKET_PREFIX}/{path}"
-    ).download_fileobj(virtual_file)
+    if hasattr(Config, "BUCKET_PREFIX"):
+        s3.Object(
+            bucket_name=Config.BUCKET_NAME, key=f"{Config.BUCKET_PREFIX}/{path}"
+        ).download_fileobj(virtual_file)
+    else:
+        s3.Object(bucket_name=Config.BUCKET_NAME, key=f"{path}").download_fileobj(
+            virtual_file
+        )
 
     virtual_file.seek(0)
 
@@ -321,12 +326,15 @@ def upload_handler(event, context):
 
     """
     try:
+        plog(f"Event: {event}")
         # bucket = event['Records'][0]['s3']['bucket']['name']
         key = event["Records"][0]["s3"]["object"]["key"]
         path = key.split("/")[-1]
+        plog(f"Key: {key}")
+        plog(f"Path: {path}")
         transfer_s3_path_to_remarkable(path)
     except Exception as e:
-        return {"statusCode": 500, "body": "Failure occurred!"}
+        return {"statusCode": 500, "body": f"Failure occurred: {e}"}
 
     return {"statusCode": 200, "body": "Success"}
 
