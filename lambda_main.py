@@ -334,7 +334,7 @@ def upload_handler(event, context):
         plog(f"Path: {path}")
         transfer_s3_path_to_remarkable(path)
     except Exception as e:
-        return {"statusCode": 500, "body": f"Failure occurred: {e}"}
+        return {"statusCode": 500, "body": f"Failure occurred!"}
 
     return {"statusCode": 200, "body": "Success"}
 
