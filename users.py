@@ -6,6 +6,8 @@ from pynamodb.constants import PAY_PER_REQUEST_BILLING_MODE
 from rmapy.document import ZipDocument
 from rmapy.api import Client
 
+from config import Config
+
 
 class UserModel(Model):
     """
@@ -14,7 +16,7 @@ class UserModel(Model):
 
     class Meta:
         table_name = "remailable-user"
-        region = "us-east-1"
+        region = Config.AWS_REGION
         billing_mode = PAY_PER_REQUEST_BILLING_MODE
 
     email = UnicodeAttribute(hash_key=True)
